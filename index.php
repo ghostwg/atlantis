@@ -28,7 +28,8 @@
                                 </tr>
                                 <tr>
                                     <td>Door(s)</td>
-                                    <td><input type="number" id="dr" name="dr"></td>
+                                    <td><input type="checkbox" name="lhd" id="lhd" value="1">Left side door
+                                        <input type="checkbox" name="rhd" id="rhd" value="1">Right side door</td>
                                 </tr>
                                 <tr>
                                     <td>Shelf(s)</td>
@@ -36,10 +37,10 @@
                                 </tr>
                                 <tr>
                                     <td>Unit Type</td>
-                                    <td><input type="radio" name="unit_type" value="1" onchange='check_value()'>Wall Unit
-                                        <input type="radio" name="unit_type" value="2" onchange='check_value()'>Tall Unit<br>
-                                        <input type="radio" name="unit_type" value="3" onchange='check_value()'>Base Unit
-                                        <input type="radio" name="unit_type" value="4" onchange='check_value()'>Wardrobe</td>
+                                    <td><input type="radio" name="unit_type" value="0" id="Wall_unit" onclick="change_image(this)">Wall Unit
+                                        <input type="radio" name="unit_type" value="1" id="Tall_unit" onclick="change_image(this)">Tall Unit<br>
+                                        <input type="radio" name="unit_type" value="2" id="Base_unit" onclick="change_image(this)">Base Unit
+                                        <input type="radio" name="unit_type" value="3" id="Wardrobe" onclick="change_image(this)">Wardrobe</td>
                                 </tr>
                                 <tr>
                                     <td>Construction</td>
@@ -55,7 +56,7 @@
                         </form>
                     </td>
                     <td>
-                        <div id='imagedest'></div>
+                        <img src="res/blank.png" name="type" id="furniture_pic" height="230" width="150">
                     </td>
                 </tr>
             </tbody>
@@ -72,21 +73,25 @@
     $bp_gr_shift=0.6;
         if (!empty(filter_input_array(INPUT_POST))){
             if (filter_input(INPUT_SERVER, "REQUEST_METHOD", FILTER_SANITIZE_STRING) == "POST") {
-                if (filter_input(INPUT_POST,"unit_type")<>0){
+                echo filter_input(INPUT_POST,"unit_type");
+                if (filter_input(INPUT_POST,"unit_type")<>''){
                 $ht = filter_input(INPUT_POST,"ht");             // Height
                 $wt = filter_input(INPUT_POST,"wt");             // Widght
                 $dt = filter_input(INPUT_POST,"dt");             // Deep
-                $door = filter_input(INPUT_POST,"dr");           // Amount of doors
+                $lhd = filter_input(INPUT_POST,"lhd");           // Amount of doors
+                $rhd = filter_input(INPUT_POST,"rhd");           // Amount of doors
                 $shelf = filter_input(INPUT_POST,"sh");          // Amount of shelves
                 $type=filter_input(INPUT_POST,"unit_type");      // Unit type: wall unit =0, tall unit = 1, base unit = 2.
                 $bpd=filter_input(INPUT_POST,"bpt");             // Back panel 18mm.
                 $ftx=filter_input(INPUT_POST,"ftx");             //automatic fittings for shelves set
+                              
+                $door=is_door($lhd,$rhd);
                 
                 switch ($type){
-                    case 1: is_kitchen_wall_unit($bpd,$ht,$wt,$dt,$door,$shelf,$type,$ftx,$bp_gr_shift); break;
-                    case 2: is_kitchen_tall_unit($bpd,$ht,$wt,$dt,$door,$shelf,$type,$ftx,$bp_gr_shift); break;
-                    case 3: is_kitchen_base_unit($bpd,$ht,$wt,$dt,$door,$shelf,$type,$ftx,$bp_gr_shift); break;
-                    case 4: is_wardrobe_unit($ht,$wt,$dt,$door,$shelf,$type,$ftx,$bp_gr_shift); break;
+                    case 0: is_kitchen_wall_unit($bpd,$ht,$wt,$dt,$door,$shelf,$type,$ftx,$bp_gr_shift); break;
+                    case 1: is_kitchen_tall_unit($bpd,$ht,$wt,$dt,$door,$shelf,$type,$ftx,$bp_gr_shift); break;
+                    case 2: is_kitchen_base_unit($bpd,$ht,$wt,$dt,$door,$shelf,$type,$ftx,$bp_gr_shift); break;
+                    case 3: is_wardrobe_unit($ht,$wt,$dt,$door,$shelf,$type,$ftx,$bp_gr_shift); break;
                 }
             } else {
                echo "<script type='text/javascript'>alert('Choose the Unit type!');</script>";
@@ -296,7 +301,18 @@
                 }
             return $pic;
         }
-
+        
+        function is_door($lhd,$rhd){
+            if (($lhd==1)&&($rhd==1)){
+                $door=2;
+            } elseif (($lhd==1)||($rhd==1)){
+                $door=1;
+            } else {
+                $door=0;
+            }
+            return $door;    
+        }
+        
         function show_table($ht,$wt,$dt,$door,$shelf,$type,$rpl,$rph,$rpqt,$lpl,$lph,$lpqt,$bpl,$bph,$bpqt,$tpl,$tph,$tpqt,$bkpl,$bkph,$bkqt,$shl,$shh,$shqt,$drl,$drh,$drqt,$bp_deep){
             echo '<table border="1" cellspacing="2" cellpadding="2" id="printTable">
                     <tbody>
@@ -412,26 +428,23 @@
             printData();
         })
         
-        <script language='JavaScript' type='text/javascript'>
-
-    function check_value()
-    {
-        switch(document.test.field.value)
+        $('radio').on('click',function(){
+            echo('root');
+        })
+        
+                
+        function change_image(myRadio)
         {
-            case "1":
-                document.getElementById("imagedest").innerHTML = "<img src='res/k_w_unit.png'>";
-                break;
-            case "2":
-                document.getElementById("imagedest").innerHTML = "<img src='res/c_tall_rh_1sh.png'>"; 
-                break;
-            case "3":
-                document.getElementById("imagedest").innerHTML = "<img src='res/k_b_unit.jpg'>"; 
-                break;
-            case "4":
-                document.getElementById("imagedest").innerHTML = "<img src='res/c_tall_2d_1sh.png'>"; 
-                break;
+            var lhd=0;
+            var rhd=0;
+            var furniture_pic=document.getElementById('furniture_pic');
+            if (document.getElementById('sh').value==''){shelf=0;}else{shelf=document.getElementById('sh').value;}
+            console.log(document.getElementById('sh').value);
+            if (document.getElementById('lhd').checked){lhd=1;}
+            if (document.getElementById('rhd').checked){rhd=1;}
+            msg='res/'+myRadio.value+lhd+rhd+shelf+'.png';
+            furniture_pic.src=msg;
         }
-    }
 
 </script>
     
